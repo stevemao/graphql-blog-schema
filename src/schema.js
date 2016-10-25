@@ -1,8 +1,8 @@
-// import * as _ from 'underscore';
+import * as _ from 'underscore';
 
 // This is the Dataset in our blog
-// import PostsList from './data/posts';
-// import AuthorsList from './data/authors';
+import PostsList from './data/posts';
+import AuthorsList from './data/authors';
 // import {CommentList, ReplyList} from './data/comments';
 
 import {
@@ -10,12 +10,12 @@ import {
   // GraphQLInt,
   // GraphQLFloat,
   GraphQLString,
-  // GraphQLList,
+  GraphQLList,
   GraphQLObjectType,
   // GraphQLEnumType,
 
   // This is used to create required fields and arguments
-  // GraphQLNonNull,
+  GraphQLNonNull,
 
   // This is the class we need to create the schema
   GraphQLSchema
@@ -30,16 +30,43 @@ const Query = new GraphQLObjectType({
   name: 'BlogSchema',
   description: 'Root of the Blog Schema',
   fields: () => ({
-    echo: {
-      type: GraphQLString,
-      description: 'Echo what you enter',
-      args: {
-        message: {type: GraphQLString}
-      },
-      resolve: function(source, {message}) {
-        return `received ${message}`;
+    posts: {
+      type: new GraphQLList(Post),
+      resolve: function() {
+        return PostsList
+      }
+    },
+
+  })
+});
+
+const Post = new GraphQLObjectType({
+  name: "Post",
+  description: "This represent a Post",
+  fields: () => ({
+    _id: {type: new GraphQLNonNull(GraphQLString)},
+    title: {
+      type: new GraphQLNonNull(GraphQLString),
+      resolve: function(post) {
+        return post.title || "Does not exist";
+      }
+    },
+    content: {type: GraphQLString},
+    author: {
+      type: Author,
+      resolve: function(post) {
+        return _.find(AuthorsList, a => a._id == post.author);
       }
     }
+  })
+});
+
+const Author = new GraphQLObjectType({
+  name: "Author",
+  description: "This represent an author",
+  fields: () => ({
+    _id: {type: new GraphQLNonNull(GraphQLString)},
+    name: {type: GraphQLString}
   })
 });
 
